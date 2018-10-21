@@ -23,7 +23,7 @@ interface IceCandidateMessage {
 
 type PublicMessage = OfferMessage | AnswerMessage | IceCandidateMessage
 
-class RTCRemoteManager {
+export class RTCRemoteManager {
 	public id: string
 	private local: RTCLocalManager
 	private connection: RTCPeerConnection
@@ -35,7 +35,7 @@ class RTCRemoteManager {
 
 		// Create a peer connection.
 		this.connection = new RTCPeerConnection({
-			iceServers: [{ urls: "stuns:stun.l.google.com:19302" }],
+			iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 		})
 
 		// Send ICE candidate to the other peer to set up the connection channel.
