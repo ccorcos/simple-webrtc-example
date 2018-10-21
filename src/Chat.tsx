@@ -1,9 +1,10 @@
 import * as React from "react"
-import { RTCLocalManager, RTCRemoteManager } from "./rtc"
+import { RTCLocalManager, RTCRemoteManager, OfferMessage } from "./rtc"
 
 interface ChatProps {
-	localId: string
-	remoteId: string
+	local: RTCLocalManager
+	initiateRemoteId?: string | undefined
+	repondToOffer?: OfferMessage | undefined
 }
 
 interface ChatState {
@@ -25,8 +26,13 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
 	constructor(props: ChatProps) {
 		super(props)
-		const local = new RTCLocalManager(this.props.localId)
-		this.remote = local.connect(this.props.remoteId)
+		if (this.props.initiateRemoteId) {
+			this.remote = this.props.local.connect(this.props.initiateRemoteId)
+			this.remote.initiate()
+		} else if (this.props.repondToOffer) {
+			this.remote = this.props.local.connect(this.props.repondToOffer.fromId)
+			this.remote.recieveOfferMessage(this.props.repondToOffer)
+		}
 		this.remote.addListener(this.handleMessage)
 	}
 

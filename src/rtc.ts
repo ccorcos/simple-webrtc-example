@@ -3,19 +3,19 @@ import * as signalhub from "signalhub"
 // Centralized router for handshaking.
 const hub = signalhub("simple-webrtc-example", ["http://localhost:8081"])
 
-interface OfferMessage {
+export interface OfferMessage {
 	type: "offer"
 	fromId: string
 	description: RTCSessionDescriptionInit
 }
 
-interface AnswerMessage {
+export interface AnswerMessage {
 	type: "answer"
 	fromId: string
 	description: RTCSessionDescriptionInit
 }
 
-interface IceCandidateMessage {
+export interface IceCandidateMessage {
 	type: "ice"
 	fromId: string
 	candidate: RTCIceCandidate
@@ -129,6 +129,15 @@ export class RTCLocalManager {
 		hub.broadcast(toId, message)
 	}
 
+	// Listen for public offers.
+	private listeners = new Set<(data: any) => void>()
+	public addListener(fn: (data: OfferMessage) => void) {
+		this.listeners.add(fn)
+	}
+	public removeListener(fn: (data: OfferMessage) => void) {
+		this.listeners.delete(fn)
+	}
+
 	public receivePublicMessage = (message: PublicMessage) => {
 		const remote = this.connections[message.fromId]
 		if (remote) {
@@ -138,6 +147,13 @@ export class RTCLocalManager {
 				remote.receiveAnswerMessage(message)
 			} else {
 				remote.receiveIceCandidateMessage(message)
+			}
+		} else {
+			if (message.type === "offer") {
+				const listeners = Array.from(this.listeners)
+				for (const listener of listeners) {
+					listener(message)
+				}
 			}
 		}
 	}
